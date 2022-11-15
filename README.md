@@ -29,3 +29,7 @@ Master Thesis by Alexander Schipek: [Download](https://drive.google.com/file/d/1
 ```
 "currentDir": "${workspaceRoot}"
 ```
+
+## Assets
+
+The assets for most predefined Scenes can be found [here](https://developer.nvidia.com/orca).

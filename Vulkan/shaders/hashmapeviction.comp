@@ -1,0 +1,75 @@
+#version 460
+#extension GL_EXT_shader_atomic_float : enable
+
+layout (local_size_x_id = 0) in;
+layout (local_size_y_id = 1) in;
+layout (local_size_z_id = 2) in;
+
+layout(push_constant) uniform PushStruct {
+    uint hashMapSize;
+    uint frameCount;
+    uint evictionTime;
+    uint maxSamples;
+    bool calcHashMapOccupation;
+} p;
+
+#include "includes/hashmap_ext.frag"
+
+layout(binding = 0) buffer hashMapBuffer { HashMapCell hashMap[]; };
+layout(binding = 1) buffer hashMapBuffer2 { HashMapCell hashMap2[]; };
+layout(binding = 2) buffer hashMapOccupationBuffer { uint hashMapOccupation; };
+
+#include "includes/gethashmap_ext.frag"
+
+void main()
+{
+    int coord = int(gl_GlobalInvocationID.x);
+    if(coord >= p.hashMapSize)  // Check limits
+      return;
+    
+	if (hashMap[coord].timestamp == 0)
+	{
+		return;
+	}
+
+    if (p.frameCount - hashMap[coord].timestamp <= p.evictionTime)
+	{
+		if (p.calcHashMapOccupation)
+		{
+			atomicAdd(hashMapOccupation, 1);
+        }
+		
+		HashMapCell hm = hashMap[coord];
+		// exponential moving average
+		int n = int(p.maxSamples);
+		if (hm.counter > n)
+		{
+			float alpha = float(n) / float(hm.counter);
+			hm.counter = n;
+			hm.mom2 = alpha * hm.mom2;
+			hm.radiance[0] = alpha * hm.radiance[0];
+			hm.radiance[1] = alpha * hm.radiance[1];
+			hm.radiance[2] = alpha * hm.radiance[2];
+		}
+
+		hashMap[coord] = hm;
+		hashMap2[coord] = hm;
+		return;
+	}
+	
+	hashMap[coord].key = 0;
+	hashMap[coord].counter = 0;
+	hashMap[coord].timestamp = 0;
+	hashMap[coord].mom2 = 0.0;
+	hashMap[coord].radiance[0] = 0.0;
+	hashMap[coord].radiance[1] = 0.0;
+	hashMap[coord].radiance[2] = 0.0;
+
+	hashMap2[coord].key = 0;
+	hashMap2[coord].counter = 0;
+	hashMap2[coord].timestamp = 0;
+	hashMap2[coord].mom2 = 0.0;
+	hashMap2[coord].radiance[0] = 0.0;
+	hashMap2[coord].radiance[1] = 0.0;
+	hashMap2[coord].radiance[2] = 0.0;
+}

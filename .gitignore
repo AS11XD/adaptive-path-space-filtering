@@ -1,0 +1,8 @@
+.vs/
+build/
+out/
+device_selection_cache
+CMakeSettings.json
+imgui.ini
+cmake-build-*
+.idea

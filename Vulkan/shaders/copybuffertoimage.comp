@@ -1,0 +1,36 @@
+#version 460
+#extension GL_EXT_shader_image_load_formatted : enable
+
+layout (local_size_x_id = 0) in;
+layout (local_size_y_id = 1) in;
+layout (local_size_z_id = 2) in;
+
+layout(push_constant) uniform PushStruct {
+    uint width;
+    uint height;
+    float exposure;
+    bool tonemapping;
+} p;
+
+layout(binding = 0) buffer _buf0 { vec4 buf[]; };
+layout(binding = 1) uniform image2D image;
+
+vec4 fromLinear(vec4 linearRGB)
+{
+    bvec4 cutoff = lessThan(linearRGB, vec4(0.0031308));
+    vec4 higher = vec4(1.055)*pow(linearRGB, vec4(1.0/2.4)) - vec4(0.055);
+    vec4 lower = linearRGB * vec4(12.92);
+
+    return mix(higher, lower, cutoff);
+}
+
+void main()
+{
+    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
+    if(coord.x >= p.width || coord.y >= p.height)  // Check limits
+      return;
+    
+    uint linear = coord.y * p.width + coord.x;
+    
+    imageStore(image, coord, ((p.tonemapping) ? fromLinear(vec4(buf[linear].xyz * p.exposure, 1.0)) : buf[linear]));
+}

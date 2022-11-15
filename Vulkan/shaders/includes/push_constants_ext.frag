@@ -1,0 +1,33 @@
+
+layout(push_constant) uniform PushStruct {
+    float gamma;
+    float exposure;
+    uint renderState;
+    uint renderMode;
+    uint sampleStrategyBRDF;
+    uint width;
+    uint height;
+    uint frameCount;
+    uint iterations;
+    bool disableFirstBounce;
+    bool sampleEnvironmentMap;
+    uint lightCount;
+    bool keepCurrentLines;
+    bool drawNormalMaps;
+    bool denoise;
+    bool tonemapping;
+    uint hashMapSize;
+    float gridScale;
+    bool gridJitter;
+    uint psfMode;
+    uint varianceInterpolationSize;
+    bool showPTComparison;
+	uint varianceFuncitonUVfHM;
+	uint varianceFunctionPSR;
+	float varianceThresholdsUVfHM[2];
+	float varianceThresholdsPSR[2];
+	float varianceConst;
+    bool usePrimaryMethods;
+	uint maxSamples;
+    bool referenceMode;
+} p;

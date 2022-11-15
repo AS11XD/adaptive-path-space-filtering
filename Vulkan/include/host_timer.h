@@ -1,0 +1,16 @@
+#pragma once
+
+#include <chrono>
+
+class HostTimer
+{
+private:
+	using clock = std::chrono::high_resolution_clock;
+
+	clock::time_point start;
+
+public:
+	HostTimer();
+	void reset();
+	double elapsed() const;
+};

@@ -1,0 +1,36 @@
+#version 460
+#extension GL_EXT_shader_image_load_formatted : enable
+#extension GL_EXT_shader_atomic_float : enable
+
+layout (local_size_x_id = 0) in;
+layout (local_size_y_id = 1) in;
+layout (local_size_z_id = 2) in;
+
+layout(push_constant) uniform PushStruct {
+    uint width;
+    uint height;
+} p;
+
+layout(binding = 0) uniform image2D imageIn;
+layout(binding = 1) uniform image2D brightnessOut;
+
+shared float sum;
+
+void main() {    
+    
+    sum = 0.0;
+    barrier();
+
+    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
+    if(coord.x < p.width && coord.y < p.height) 
+    {
+        vec4 col = imageLoad(imageIn, coord);
+        float brightness = (col.x + col.y + col.z) / (3.0 * 16.0 * 16.0);
+        atomicAdd(sum, brightness);
+    }
+
+    barrier();
+
+    if (gl_LocalInvocationIndex == 0)
+        imageStore(brightnessOut, coord / 16, vec4(vec3(sum), 1.0));
+}

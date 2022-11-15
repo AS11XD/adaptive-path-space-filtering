@@ -1,0 +1,63 @@
+#version 460
+#extension GL_EXT_shader_image_load_formatted : enable
+
+layout (local_size_x_id = 0) in;
+layout (local_size_y_id = 1) in;
+layout (local_size_z_id = 2) in;
+
+layout(push_constant) uniform PushStruct {
+    uint width;
+    uint height;
+    uint currentReferenceIteration;
+    uint maxReferenceIteration;
+    float alpha;
+    bool useExponentialMovingAverage;
+    bool referenceMode;
+} p;
+
+layout(binding = 0) uniform image2D reference;
+layout(binding = 1) uniform image2D imageIn;
+layout(binding = 2) uniform image2D imageOut;
+
+vec4 fromLinear(vec4 linearRGB)
+{
+    bvec4 cutoff = lessThan(linearRGB, vec4(0.0031308));
+    vec4 higher = vec4(1.055)*pow(linearRGB, vec4(1.0/2.4)) - vec4(0.055);
+    vec4 lower = linearRGB * vec4(12.92);
+
+    return mix(higher, lower, cutoff);
+}
+
+void main()
+{
+    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
+    if(coord.x >= p.width || coord.y >= p.height)  // Check limits
+      return;
+    
+    vec4 refCol = imageLoad(reference, coord);
+    if (p.currentReferenceIteration >= p.maxReferenceIteration)
+    {
+        vec4 res = (p.useExponentialMovingAverage) ? refCol : refCol / p.maxReferenceIteration;
+        imageStore(imageOut, coord, (p.referenceMode) ? fromLinear(res) : res);
+        return;
+    }
+
+    vec4 imCol = imageLoad(imageIn, coord);
+    
+    if (p.useExponentialMovingAverage) 
+    {
+        vec4 acc = (p.currentReferenceIteration == 0) ? imCol : mix(refCol, imCol, p.alpha);
+    
+        imageStore(reference, coord, acc);
+        imageStore(imageOut, coord, (p.referenceMode) ? fromLinear(acc) : acc);
+    }
+    else 
+    {
+        imCol = (any(isnan(imCol)) || any(isinf(imCol)) || any(lessThan(imCol, vec4(0.0)))) ? vec4(vec3(0.0), 1.0) : imCol;
+
+        vec4 acc = imCol + refCol;
+    
+        imageStore(reference, coord, acc);
+        imageStore(imageOut, coord, (p.referenceMode) ? fromLinear(acc / (p.currentReferenceIteration + 1)) : acc / (p.currentReferenceIteration + 1));
+    }
+}

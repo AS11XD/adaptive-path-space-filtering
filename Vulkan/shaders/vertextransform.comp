@@ -1,0 +1,82 @@
+#version 450
+
+layout (local_size_x_id = 0) in;
+layout (local_size_y_id = 1) in;
+layout (local_size_z_id = 2) in;
+
+layout(push_constant) uniform PushStruct {
+    uint vertexCount;
+} p;
+
+struct Vertex {
+    vec3 position;
+    vec3 normal;
+    vec2 texCoord;
+    uint materialID;
+    vec3 tangent;
+    vec3 bitangent;
+};
+
+struct VertexSSBO {
+    float position[3];
+    float normal[3];
+    float texCoord[2];
+    uint materialID;
+    float tangent[3];
+    float bitangent[3];
+};
+
+layout(binding = 0) buffer transformBuffer { mat4 M[]; };
+layout(binding = 1) buffer normalTransformBuffer { mat4 N[]; };
+layout(binding = 2) buffer vertexSrc { VertexSSBO vin[]; };
+layout(binding = 3) buffer vertexDst { VertexSSBO vout[]; };
+layout(binding = 4) buffer comTransBuffer { mat4 COM[]; };
+layout(binding = 5) buffer comTransInvBuffer { mat4 COMI[]; };
+
+Vertex getVertexAt(uint idx) {
+    VertexSSBO vssbo = vin[idx];
+    Vertex v;
+    v.position = vec3(vssbo.position[0], vssbo.position[1], vssbo.position[2]);
+    v.normal = vec3(vssbo.normal[0], vssbo.normal[1], vssbo.normal[2]);
+    v.texCoord = vec2(vssbo.texCoord[0], vssbo.texCoord[1]);
+    v.materialID = vssbo.materialID;
+    v.tangent = vec3(vssbo.tangent[0], vssbo.tangent[1], vssbo.tangent[2]);
+    v.bitangent = vec3(vssbo.bitangent[0], vssbo.bitangent[1], vssbo.bitangent[2]);
+    return v;
+}
+
+void setVertexAt(Vertex v, uint idx) {
+    VertexSSBO vssbo;
+    vssbo.position[0] = v.position.x;
+    vssbo.position[1] = v.position.y;
+    vssbo.position[2] = v.position.z;
+    vssbo.normal[0] = v.normal.x;
+    vssbo.normal[1] = v.normal.y;
+    vssbo.normal[2] = v.normal.z;
+    vssbo.texCoord[0] = v.texCoord.x;
+    vssbo.texCoord[1] = v.texCoord.y;
+    vssbo.materialID = v.materialID;
+    vssbo.tangent[0] = v.tangent.x;
+    vssbo.tangent[1] = v.tangent.y;
+    vssbo.tangent[2] = v.tangent.z;
+    vssbo.bitangent[0] = v.bitangent.x;
+    vssbo.bitangent[1] = v.bitangent.y;
+    vssbo.bitangent[2] = v.bitangent.z;
+    vout[idx] = vssbo;
+}
+
+
+void main() {
+    uint idx = gl_GlobalInvocationID.x;
+    if (idx >= p.vertexCount)
+        return;
+
+    Vertex v = getVertexAt(idx);
+    vec4 n_position = COM[v.materialID] * M[v.materialID] * COMI[v.materialID] * vec4(v.position, 1.0);
+    v.position = n_position.xyz;
+    mat3 _N = mat3(N[v.materialID]);
+    v.normal = normalize(_N * v.normal);
+    v.tangent = _N * v.tangent;
+    v.bitangent = _N * v.bitangent;
+    setVertexAt(v, idx);
+}

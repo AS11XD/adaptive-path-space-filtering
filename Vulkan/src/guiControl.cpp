@@ -535,10 +535,6 @@ void GuiControl::setScene(AppResources* app, SampledTexture* renderedCubemap)
 	}
 	switch (var.currentScene)
 	{
-		case SCENE::GROUDON:
-			app->scene = new Scene("res/obj/groudon/Groudon.obj", app, this, renderedCubemap, var.normalMapping, glm::scale(glm::vec3(0.02f)));
-			break;
-
 		case SCENE::BISTRO_EXTERIOR:
 			app->scene = new Scene("res/fbx/Bistro_v5/BistroExterior.fbx", app, this, renderedCubemap, var.normalMapping, glm::mat4(1.0f), glm::vec3(0.0f, 1.0f, 0.0f), true);
 			break;

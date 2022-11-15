@@ -4,7 +4,7 @@
 
 enum SCENE
 {
-	GROUDON, BISTRO_EXTERIOR, BISTRO_INTERIOR, BISTRO, SUN_TEMPLE, ZERO_DAY, EMERALD_SQUARE, CORRIDOR, SCENE_NUM
+	BISTRO_EXTERIOR, BISTRO_INTERIOR, BISTRO, SUN_TEMPLE, ZERO_DAY, EMERALD_SQUARE, CORRIDOR, SCENE_NUM
 };
 
 enum MSAA
@@ -72,7 +72,7 @@ struct GuiVariables
 	bool autoCloudTimer = true;
 	float gamma = 2.2f;
 	float exposure = 1.0f;
-	int currentScene = SCENE::GROUDON;
+	int currentScene = SCENE::CORRIDOR;
 	bool normalMapping = true;
 	bool hideImGui = true;
 	int currentMsaa = MSAA::x1;
@@ -168,7 +168,7 @@ public:
 		HIDE_IMGUI_SCREENSHOT = 2
 	};
 
-	const char* sceneNames[SCENE::SCENE_NUM] = { "Groudon", "Bistro Exterior", "Bistro Interior", "Bistro", "Sun Temple", "Zero Day", "Emerald Square", "Corridor" };
+	const char* sceneNames[SCENE::SCENE_NUM] = { "Bistro Exterior", "Bistro Interior", "Bistro", "Sun Temple", "Zero Day", "Emerald Square", "Corridor" };
 	const char* msaaNames[MSAA::MSAA_NUM] = { "x1", "x2", "x4", "x8" };
 	const char* renderStateNames[RENDER_STATE::RS_NUM] = { "Color", "G-Buffer", "Position", "Normal", "Material Id", "Depth", "Brightness" };
 	const char* renderModesNames[RENDER_MODE::RM_NUM] = { "Diffuse Color", "Specular Color","RTX-Prepass", "Ray Tracing", "Path Tracing", "Sample Validation", "Path Space Filtering", "Adaptive Path Space Filtering Primary", "Adaptive Path Graphs" };

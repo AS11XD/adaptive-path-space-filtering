@@ -1,6 +1,6 @@
 # Adaptive Path Space Filtering
 
-Master Thesis by Alexander Schipek: [Download](https://drive.google.com/file/d/1eUGLRqkoe9PO2kzLCRhN5evFtdWreO8m/view?usp=share_link)
+Master Thesis by Alexander Schipek: [Download](https://asxd.de/res/master/ausarbeitung.pdf)
 
 ## Vulkan installation
 
